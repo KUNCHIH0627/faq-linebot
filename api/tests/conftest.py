@@ -13,8 +13,7 @@ from fastapi.testclient import TestClient
 
 from app.core.database import Base, SessionLocal, engine
 from app.main import app
-from app.seed import SAMPLES
-from app.models.faq import Faq
+from app.seed import seed
 from app.services import line
 
 
@@ -23,11 +22,16 @@ def fresh_db():
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
     db = SessionLocal()
-    for course, category, q, a, kw in SAMPLES:
-        db.add(Faq(course=course, category=category, question=q, answer=a, keywords=kw))
-    db.commit()
+    seed(db)
     db.close()
     yield
+
+
+@pytest.fixture
+def db():
+    session = SessionLocal()
+    yield session
+    session.close()
 
 
 @pytest.fixture

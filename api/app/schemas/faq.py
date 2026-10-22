@@ -1,19 +1,34 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, Field
+
+
+class KeywordIn(BaseModel):
+    word: str
+    weight: int = Field(3, ge=1)
 
 
 class FaqCreate(BaseModel):
-    course: str
-    category: Optional[str] = None
+    category: str
     question: str
     answer: str
-    keywords: Optional[str] = None
+    is_active: bool = True
+    course_codes: list[str] = Field(min_length=1)  # 例如 ["DB", "WEB"]，課程要先存在
+    keywords: list[KeywordIn] = []
 
 
-class FaqResponse(FaqCreate):
-    model_config = ConfigDict(from_attributes=True)
+class CourseResponse(BaseModel):
+    code: str
+    name: str
 
-    id: int
-    created_at: Optional[datetime] = None
+
+class FaqResponse(BaseModel):
+    faq_id: int
+    category: str
+    question: str
+    answer: str
+    is_active: bool
+    courses: list[CourseResponse]
+    keywords: list[KeywordIn]  # word 是正規化後的字串
+    since: Optional[datetime] = None
